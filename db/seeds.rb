@@ -1,12 +1,17 @@
-# Create main user - 방세준
-user = User.find_or_create_by!(email: "noah8.technologies@proton.me") do |u|
-  u.name = "방세준"
-  u.tagline = "배움을 멈추지 않는 개발자"
-  u.bio = "안녕하세요, 저는 배움을 멈추지 않는 개발자 방세준입니다. 저는 DevOps 엔지니어가 되어 복잡한 소프트웨어를 효율적으로 관리하는 것을 목표로 합니다. 최근, 소프트웨어는 더욱 더 복잡해지고 있고, 소프트웨어 아키텍처의 중요성 또한 커지고 있습니다."
-  u.phone = "010-6366-5783"
-  u.github_url = "https://github.com/yuuki08noah"
+# Create main user - uses environment variables for sensitive data
+admin_email = ENV.fetch('ADMIN_EMAIL', 'admin@example.com')
+admin_name = ENV.fetch('ADMIN_NAME', 'Admin User')
+admin_phone = ENV.fetch('ADMIN_PHONE', '')
+admin_github = ENV.fetch('ADMIN_GITHUB_URL', '')
+
+user = User.find_or_create_by!(email: admin_email) do |u|
+  u.name = admin_name
+  u.tagline = ENV.fetch('ADMIN_TAGLINE', '배움을 멈추지 않는 개발자')
+  u.bio = ENV.fetch('ADMIN_BIO', '안녕하세요, 저는 배움을 멈추지 않는 개발자입니다.')
+  u.phone = admin_phone
+  u.github_url = admin_github
   u.role = "admin"
-  u.job_position = "DevOps Engineer"
+  u.job_position = ENV.fetch('ADMIN_JOB_POSITION', 'Developer')
   u.password = SecureRandom.hex(32)
   u.email_verified = true
 end
