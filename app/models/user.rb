@@ -27,6 +27,8 @@ class User < ApplicationRecord
   serialize :external_links, type: Array, coder: JSON
   serialize :certifications, type: Array, coder: JSON
 
+  accepts_nested_attributes_for :awards, allow_destroy: true
+
   validates :role, presence: true, inclusion: { in: ROLES }
   validates :admin_status, inclusion: { in: ADMIN_STATUSES }, allow_nil: true
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
