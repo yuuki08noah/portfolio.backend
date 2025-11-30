@@ -2,12 +2,23 @@ module Api
   module V1
     module Portfolio
       class AwardsController < ApplicationController
+        include Localizable
+
         before_action :authenticate_user!, except: [:index, :show]
         before_action :set_award, only: [:show]
         before_action :set_owned_award, only: [:update, :destroy]
 
         def index
-          awards = Award.recent
+          awards = Award.recent.select do |award|
+            case current_locale
+            when 'ko'
+              award.translations_for('ko')['title'].present?
+            when 'ja'
+              award.translations_for('ja')['title'].present?
+            else
+              award.translations_for('ko')['title'].blank? && award.translations_for('ja')['title'].blank?
+            end
+          end
           render json: { awards: awards.map { |award| award_response(award) } }, status: :ok
         end
 
@@ -44,12 +55,14 @@ module Api
         end
 
         def award_response(award)
+          translations = award.translations_for(current_locale)
+
           {
             id: award.id,
-            title: award.title,
-            organization: award.organization,
+            title: translations['title'].presence || award.title,
+            organization: translations['organization'].presence || award.organization,
             date: award.date,
-            description: award.description,
+            description: translations['description'].presence || award.description,
             badge_image: award.badge_image
           }
         end
