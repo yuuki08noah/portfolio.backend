@@ -56,6 +56,13 @@ class Project < ApplicationRecord
   def generate_slug
     return if title.blank?
     base_slug = title.parameterize
+    
+    # Handle non-ASCII titles (Korean, Japanese, etc.) that result in empty slug
+    if base_slug.blank?
+      # Use transliteration or create a random slug
+      base_slug = "project-#{SecureRandom.hex(4)}"
+    end
+    
     self.slug = base_slug
     
     counter = 1

@@ -3,7 +3,7 @@ class Milestone < ApplicationRecord
 
   serialize :details, coder: JSON
 
-  enum :milestone_type, { work: 'work', education: 'education' }
+  enum :milestone_type, { work: 'work', education: 'education', scholarship: 'scholarship', activity: 'activity' }
 
   validates :title, :milestone_type, :period, presence: true
 

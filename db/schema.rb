@@ -11,7 +11,17 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
-  create_table "awards", force: :cascade do |t|
+  create_schema "extensions"
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "extensions.pg_stat_statements"
+  enable_extension "extensions.pgcrypto"
+  enable_extension "extensions.uuid-ossp"
+  enable_extension "graphql.pg_graphql"
+  enable_extension "pg_catalog.plpgsql"
+  enable_extension "vault.supabase_vault"
+
+  create_table "public.awards", force: :cascade do |t|
     t.string "badge_image"
     t.datetime "created_at", null: false
     t.date "date"
@@ -23,7 +33,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_awards_on_user_id"
   end
 
-  create_table "blog_posts", force: :cascade do |t|
+  create_table "public.blog_posts", force: :cascade do |t|
     t.integer "category_id"
     t.text "content"
     t.string "cover_image"
@@ -43,7 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_blog_posts_on_user_id"
   end
 
-  create_table "books", force: :cascade do |t|
+  create_table "public.books", force: :cascade do |t|
     t.string "author", null: false
     t.text "categories"
     t.string "cover_image"
@@ -61,7 +71,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_books_on_user_id"
   end
 
-  create_table "categories", force: :cascade do |t|
+  create_table "public.categories", force: :cascade do |t|
     t.string "color"
     t.datetime "created_at", null: false
     t.text "description"
@@ -75,7 +85,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_categories_on_user_id"
   end
 
-  create_table "comments", force: :cascade do |t|
+  create_table "public.comments", force: :cascade do |t|
     t.integer "commentable_id", null: false
     t.string "commentable_type", null: false
     t.text "content", null: false
@@ -95,7 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
-  create_table "hire_requests", force: :cascade do |t|
+  create_table "public.hire_requests", force: :cascade do |t|
     t.string "company"
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -106,7 +116,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "milestones", force: :cascade do |t|
+  create_table "public.milestones", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "details"
     t.string "location"
@@ -119,7 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_milestones_on_user_id"
   end
 
-  create_table "project_blog_posts", force: :cascade do |t|
+  create_table "public.project_blog_posts", force: :cascade do |t|
     t.string "category", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
@@ -138,7 +148,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["project_id"], name: "index_project_blog_posts_on_project_id"
   end
 
-  create_table "projects", force: :cascade do |t|
+  create_table "public.projects", force: :cascade do |t|
     t.string "blog_folder"
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
@@ -160,7 +170,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
-  create_table "reading_goals", force: :cascade do |t|
+  create_table "public.reading_goals", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "current_books", default: 0, null: false
     t.integer "target_books", null: false
@@ -170,7 +180,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_reading_goals_on_user_id"
   end
 
-  create_table "site_settings", force: :cascade do |t|
+  create_table "public.site_settings", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "key"
     t.datetime "updated_at", null: false
@@ -178,7 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["key"], name: "index_site_settings_on_key", unique: true
   end
 
-  create_table "tags", force: :cascade do |t|
+  create_table "public.tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
     t.integer "post_count"
@@ -187,7 +197,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.integer "usage_count"
   end
 
-  create_table "translations", force: :cascade do |t|
+  create_table "public.translations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "field_name", null: false
     t.string "locale", null: false
@@ -199,7 +209,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["translatable_type", "translatable_id", "locale"], name: "index_translations_by_record_locale"
   end
 
-  create_table "travel_diaries", force: :cascade do |t|
+  create_table "public.travel_diaries", force: :cascade do |t|
     t.text "companions"
     t.datetime "created_at", null: false
     t.text "days"
@@ -220,7 +230,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_travel_diaries_on_user_id"
   end
 
-  create_table "travel_plans", force: :cascade do |t|
+  create_table "public.travel_plans", force: :cascade do |t|
     t.text "bucket_list"
     t.decimal "budget_amount", precision: 12, scale: 2
     t.string "budget_currency"
@@ -240,7 +250,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["user_id"], name: "index_travel_plans_on_user_id"
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "public.users", force: :cascade do |t|
     t.text "admin_approved_by"
     t.datetime "admin_invite_expires_at"
     t.string "admin_invite_token"
@@ -288,16 +298,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.index ["role"], name: "index_users_on_role"
   end
 
-  add_foreign_key "awards", "users"
-  add_foreign_key "blog_posts", "users"
-  add_foreign_key "books", "users"
-  add_foreign_key "categories", "users"
-  add_foreign_key "comments", "comments", column: "parent_id"
-  add_foreign_key "comments", "users"
-  add_foreign_key "milestones", "users"
-  add_foreign_key "project_blog_posts", "projects"
-  add_foreign_key "projects", "users"
-  add_foreign_key "reading_goals", "users"
-  add_foreign_key "travel_diaries", "users"
-  add_foreign_key "travel_plans", "users"
+  add_foreign_key "public.awards", "public.users"
+  add_foreign_key "public.blog_posts", "public.users"
+  add_foreign_key "public.books", "public.users"
+  add_foreign_key "public.categories", "public.users"
+  add_foreign_key "public.comments", "public.comments", column: "parent_id"
+  add_foreign_key "public.comments", "public.users"
+  add_foreign_key "public.milestones", "public.users"
+  add_foreign_key "public.project_blog_posts", "public.projects"
+  add_foreign_key "public.projects", "public.users"
+  add_foreign_key "public.reading_goals", "public.users"
+  add_foreign_key "public.travel_diaries", "public.users"
+  add_foreign_key "public.travel_plans", "public.users"
+
 end

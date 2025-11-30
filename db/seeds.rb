@@ -57,6 +57,11 @@ projects_data = [
 projects_data.each do |project_data|
   # Generate slug manually for find_or_initialize_by
   base_slug = project_data[:title].parameterize
+  # Handle Korean titles that result in empty slug
+  if base_slug.blank?
+    base_slug = project_data[:title].gsub(/[^a-zA-Z0-9가-힣]/, '-').gsub(/-+/, '-').gsub(/^-|-$/, '')
+    base_slug = "project-#{SecureRandom.hex(4)}" if base_slug.blank?
+  end
   slug = base_slug
   counter = 1
   while Project.where.not(title: project_data[:title]).exists?(slug: slug)
@@ -73,7 +78,7 @@ projects_data.each do |project_data|
   project.demo_url = project_data[:demo_url] if project_data[:demo_url]
   project.stack = project_data[:stack]
   project.itinerary = project_data[:itinerary] if project_data[:itinerary]
-  project.slug = slug if project.slug.blank?
+  project.slug = slug
   
   project.save!
   puts "Created/Updated project: #{project.title}"
