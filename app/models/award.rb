@@ -1,7 +1,9 @@
 class Award < ApplicationRecord
+  include Translatable
+
   belongs_to :user
 
-  validates :title, :organization, :date, presence: true
+  translatable_fields :title, :organization, :description
 
   scope :recent, -> { order(date: :desc) }
 end
