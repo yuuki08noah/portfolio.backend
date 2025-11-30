@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  commentable: one
+  commentable_type: Commentable
+  user: one
+  parent: one
+  content: MyText
+  path: MyString
+  depth: 1
+
+two:
+  commentable: two
+  commentable_type: Commentable
+  user: two
+  parent: two
+  content: MyText
+  path: MyString
+  depth: 1
