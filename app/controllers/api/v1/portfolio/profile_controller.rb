@@ -8,9 +8,9 @@ module Api
         require 'redcarpet'
 
         # GET /api/v1/portfolio/profile or /api/v1/:locale/portfolio/profile
-        # Returns the public profile (first admin user or specified user)
+        # Returns the public profile (first admin user)
         def show
-          user = User.find_by(role: [ "admin", "super_admin" ])
+          user = User.where(role: [ "admin", "super_admin" ]).order(created_at: :asc).first
 
           if user.nil?
             render json: { error: "Profile not found" }, status: :not_found
@@ -21,21 +21,30 @@ module Api
         end
 
         # PUT /api/v1/portfolio/profile
-        # Updates the current user's profile
+        # Updates the admin user's profile
         def update
-          if current_user.update(profile_params)
-            save_translations(current_user)
-            render json: { message: "Profile updated successfully", profile: profile_response(current_user) }, status: :ok
-          else
-            render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+          user = User.where(role: [ "admin", "super_admin" ]).order(created_at: :asc).first
+
+          if user.nil?
+            render json: { error: "Profile not found" }, status: :not_found
+            return
           end
+
+          ActiveRecord::Base.transaction do
+            user.update!(profile_params)
+            save_translations(user)
+            save_award_translations(user)
+            render json: { message: "Profile updated successfully", profile: profile_response(user) }, status: :ok
+          end
+        rescue ActiveRecord::RecordInvalid => e
+          render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
         end
 
         private
 
         def save_translations(user)
           return unless params[:translations].present?
-          
+
           %w[ko ja].each do |locale|
             if params[:translations][locale].present?
               user.set_translations(locale, params[:translations][locale].permit(
@@ -45,16 +54,38 @@ module Api
           end
         end
 
+        def save_award_translations(user)
+          return unless params[:awards_attributes].present?
+
+          params[:awards_attributes].each do |award_params|
+            next unless award_params[:id].present?
+
+            award = user.awards.find_by(id: award_params[:id])
+            next unless award
+
+            if award_params[:translations].present?
+              %w[ko ja].each do |locale|
+                if award_params[:translations][locale].present?
+                  award.set_translations(locale, award_params[:translations][locale].permit(
+                    :title, :organization, :description
+                  ).to_h)
+                end
+              end
+            end
+          end
+        end
+
         def profile_params
           params.permit(
-            :name, :tagline, :bio, 
+            :name, :tagline, :bio,
             :avatar_url, :phone,
             :github_url, :linkedin_url, :twitter_url, :website_url,
             :location_country, :location_city, :job_position,
             skills: [],
             values: [ :title, :description ],
             external_links: [ :name, :url, :icon ],
-            certifications: [ :name, :issuer, :date, :url ]
+            certifications: [ :name, :issuer, :date, :url ],
+            awards_attributes: [ :id, :title, :organization, :date, :badge_image, :description, :_destroy ]
           )
         end
 
@@ -95,6 +126,23 @@ module Api
             values: user.values || [],
             external_links: user.external_links || [],
             certifications: user.certifications || [],
+            awards: user.awards.map { |award|
+              ko_award_translations = award.translations_for('ko')
+              ja_award_translations = award.translations_for('ja')
+
+              {
+                id: award.id,
+                name: award.title,
+                issuer: award.organization,
+                date: award.date,
+                url: award.badge_image,
+                description: award.description,
+                translations: {
+                  ko: ko_award_translations,
+                  ja: ja_award_translations
+                }
+              }
+            },
             translations: {
               ko: ko_translations,
               ja: ja_translations
