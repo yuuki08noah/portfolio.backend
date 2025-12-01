@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_01_050803) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -261,6 +261,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_160203) do
     t.text "bio"
     t.text "certifications"
     t.string "company"
+    t.string "contact_email"
     t.datetime "created_at", null: false
     t.string "currency"
     t.boolean "dark_mode", default: false, null: false
