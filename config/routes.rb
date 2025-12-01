@@ -28,11 +28,15 @@ Rails.application.routes.draw do
       end
       
       # User management routes
-      namespace :users do
-        get 'me', to: 'users#me'
-        get ':id', to: 'users#show'
-        put ':id', to: 'users#update'
-        delete ':id', to: 'users#destroy'
+      get 'users/me', to: 'users/users#me'
+      
+      resources :users, only: [], module: 'users' do
+        member do
+          get '', to: 'users#show'
+          put '', to: 'users#update'
+          delete '', to: 'users#destroy'
+          post 'avatar', to: 'users#upload_avatar'
+        end
       end
       
       # Locale-based routes (ko/en/ja)
@@ -69,6 +73,7 @@ Rails.application.routes.draw do
         namespace :travel do
           resources :diaries
           resources :plans
+          get 'stats', to: 'stats#index'
         end
 
         # Site settings
@@ -105,7 +110,12 @@ Rails.application.routes.draw do
       end
 
       # Comments routes
-      resources :comments, only: [:index, :create, :update, :destroy]
+      resources :comments, only: [:index, :create, :update, :destroy] do
+        member do
+          post :like
+          delete :like, action: :unlike
+        end
+      end
 
       # Reading routes (backward compatibility)
       namespace :reading do
@@ -118,6 +128,7 @@ Rails.application.routes.draw do
       namespace :travel do
         resources :diaries
         resources :plans
+        get 'stats', to: 'stats#index'
       end
 
       # Site settings (backward compatibility)

@@ -3,8 +3,8 @@ module Api
     module Users
       class UsersController < ApplicationController
         before_action :authenticate_user!
-        before_action :set_user, only: [:show, :update, :destroy]
-        before_action :authorize_user!, only: [:update, :destroy]
+        before_action :set_user, only: [:show, :update, :destroy, :upload_avatar]
+        before_action :authorize_user!, only: [:update, :destroy, :upload_avatar]
 
         # GET /api/v1/users/me
         def me
@@ -32,6 +32,40 @@ module Api
         def destroy
           @user.destroy
           render json: { message: 'User deleted successfully' }, status: :ok
+        end
+
+        # POST /api/v1/users/:id/avatar
+        def upload_avatar
+          if params[:avatar].present?
+            # Purge old avatar if exists (removes from S3)
+            @user.avatar.purge if @user.avatar.attached?
+            
+            # Generate consistent filename based on user email
+            file = params[:avatar]
+            extension = File.extname(file.original_filename)
+            sanitized_email = @user.email.gsub(/[^a-zA-Z0-9]/, '_')
+            custom_filename = "avatar_#{sanitized_email}#{extension}"
+            
+            # Attach with custom filename
+            @user.avatar.attach(
+              io: file.tempfile,
+              filename: custom_filename,
+              content_type: file.content_type
+            )
+            
+            avatar_url = if @user.avatar.attached?
+              @user.avatar.url
+            else
+              nil
+            end
+            
+            render json: {
+              message: 'Avatar uploaded successfully',
+              avatar_url: avatar_url
+            }, status: :ok
+          else
+            render json: { error: 'No avatar file provided' }, status: :unprocessable_entity
+          end
         end
 
         private
@@ -69,6 +103,12 @@ module Api
         end
 
         def user_response(user)
+          avatar_url = if user.avatar.attached?
+            user.avatar.url
+          else
+            user.avatar_url
+          end
+          
           {
             id: user.id,
             email: user.email,
@@ -76,7 +116,7 @@ module Api
             profile: user.profile,
             company: user.company,
             job_position: user.job_position,
-            avatar_url: user.avatar_url,
+            avatar_url: avatar_url,
             bio: user.bio,
             location: {
               country: user.location_country,

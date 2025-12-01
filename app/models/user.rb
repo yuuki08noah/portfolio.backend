@@ -7,6 +7,9 @@ class User < ApplicationRecord
   translatable_fields :name, :bio, :tagline, :job_position, :location_city, :location_country
 
   has_secure_password
+  
+  # ActiveStorage for avatar
+  has_one_attached :avatar
 
   has_many :projects, dependent: :destroy
   has_many :awards, dependent: :destroy
@@ -17,6 +20,8 @@ class User < ApplicationRecord
   has_many :reading_goals, dependent: :destroy
   has_many :travel_diaries, dependent: :destroy
   has_many :travel_plans, dependent: :destroy
+  has_many :comment_likes, dependent: :destroy
+  has_many :liked_comments, through: :comment_likes, source: :comment
 
   before_validation :normalize_email
   before_validation :ensure_admin_approved_by

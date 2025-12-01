@@ -21,8 +21,14 @@ module Api
         end
 
         # PUT /api/v1/portfolio/profile
-        # Updates the admin user's profile
+        # Updates the admin user's profile (only accessible by admins)
         def update
+          # Check if current user is admin
+          unless current_user&.role.in?(['admin', 'super_admin'])
+            render json: { error: "Unauthorized. Only administrators can update the portfolio profile." }, status: :forbidden
+            return
+          end
+
           user = User.where(role: [ "admin", "super_admin" ]).order(created_at: :asc).first
 
           if user.nil?

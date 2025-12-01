@@ -4,6 +4,8 @@ class Comment < ApplicationRecord
   belongs_to :parent, class_name: "Comment", optional: true
 
   has_many :replies, class_name: "Comment", foreign_key: :parent_id, dependent: :destroy
+  has_many :likes, class_name: "CommentLike", dependent: :destroy
+  has_many :liked_users, through: :likes, source: :user
 
   validates :content, presence: true
   validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -24,6 +26,12 @@ class Comment < ApplicationRecord
 
   def descendants
     Comment.where("path LIKE ?", "#{path}/%").order(:path)
+  end
+
+  def liked_by?(user)
+    return false unless user
+
+    likes.exists?(user_id: user.id)
   end
 
   private

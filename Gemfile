@@ -41,6 +41,9 @@ gem "rack-cors"
 # JWT for token-based authentication
 gem "jwt"
 
+# AWS SDK for S3 ActiveStorage
+gem "aws-sdk-s3", require: false
+
 # Markdown parser
 gem "redcarpet"
 
