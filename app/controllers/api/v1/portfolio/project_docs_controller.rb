@@ -70,12 +70,14 @@ module Api
         private
 
         def set_project
-          @project = Project.active.find_by!(slug: params[:slug])
+          slug_param = params[:slug] || params[:project_slug]
+          Rails.logger.info "set_project - params[:slug]: #{params[:slug]}, params[:project_slug]: #{params[:project_slug]}"
+          @project = Project.active.find_by!(slug: slug_param)
         rescue ActiveRecord::RecordNotFound
           render json: { 
             error: {
               code: 'NOT_FOUND',
-              message: 'Project not found'
+              message: "Project not found with slug: #{slug_param}"
             }
           }, status: :not_found
         end

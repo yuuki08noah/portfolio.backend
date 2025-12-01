@@ -28,7 +28,7 @@ class ProjectBlogPost < ApplicationRecord
     troubleshooting: 'troubleshooting',
     technical: 'technical',
     devlog: 'devlog',
-    references: 'references'
+    reference: 'reference'
   }, validate: true
   
   # Validations
