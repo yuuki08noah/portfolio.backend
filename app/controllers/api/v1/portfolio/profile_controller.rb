@@ -112,13 +112,20 @@ module Api
           location_country = translations_for_locale['location_country'].presence || user.location_country
           location_city = translations_for_locale['location_city'].presence || user.location_city
 
+          # ActiveStorage avatar URL or fallback to avatar_url column
+          avatar_url = if user.avatar.attached?
+            user.avatar.url
+          else
+            user.avatar_url
+          end
+
           {
             id: user.id,
             name: name,
             tagline: tagline,
             bio: bio,
             bio_html: markdown_to_html(bio),
-            avatar_url: user.avatar_url,
+            avatar_url: avatar_url,
             phone: user.phone,
             email: user.contact_email || user.email,
             github_url: user.github_url,

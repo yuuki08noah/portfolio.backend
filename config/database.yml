@@ -13,4 +13,14 @@ test:
   database: portfolio_test
 
 production:
-  <<: *default
+  primary:
+    <<: *default
+  cache:
+    <<: *default
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    migrations_paths: db/cable_migrate

@@ -148,7 +148,15 @@ module Api
         end
 
         def authorize_user!
+          # User ID 1 (portfolio owner) can only be modified by admins
+          if @user.id == 1
+            return if current_user&.admin?
+            render json: { error: 'Forbidden. Only admins can modify portfolio owner.' }, status: :forbidden
+            return
+          end
+
           return if @user == current_user
+          return if current_user&.admin?
 
           render json: { error: 'Forbidden' }, status: :forbidden
         end
