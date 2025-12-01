@@ -105,10 +105,7 @@ Rails.application.routes.draw do
       end
 
       # Comments routes
-      get 'comments/:commentable_type/:commentable_id', to: 'comments#index'
-      post 'comments/:commentable_type/:commentable_id', to: 'comments#create'
-      put 'comments/:id', to: 'comments#update'
-      delete 'comments/:id', to: 'comments#destroy'
+      resources :comments, only: [:index, :create, :update, :destroy]
 
       # Reading routes (backward compatibility)
       namespace :reading do

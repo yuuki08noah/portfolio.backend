@@ -6,7 +6,6 @@ class Comment < ApplicationRecord
   has_many :replies, class_name: "Comment", foreign_key: :parent_id, dependent: :destroy
 
   validates :content, presence: true
-  validates :path, presence: true
   validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :locale, presence: true, inclusion: { in: %w[en ko ja] }
 

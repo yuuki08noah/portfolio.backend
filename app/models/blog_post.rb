@@ -8,20 +8,21 @@ class BlogPost < ApplicationRecord
 
   enum :status, { draft: 0, published: 1, archived: 2 }
 
-  scope :recent, -> { order(published_at: :desc) }
+  scope :recent, -> { order(Arel.sql('COALESCE(published_at, created_at) DESC')) }
   scope :published_public, -> { where(status: :published, is_public: true) }
 
   validates :title, :slug, presence: true
   validates :slug, uniqueness: { scope: :user_id }
 
-  after_initialize :set_default_status, if: :new_record?
+  after_initialize :set_defaults, if: :new_record?
 
   before_validation :assign_slug
 
   private
 
-  def set_default_status
+  def set_defaults
     self.status ||= :draft
+    self.is_public = true if is_public.nil?
   end
 
   def assign_slug
