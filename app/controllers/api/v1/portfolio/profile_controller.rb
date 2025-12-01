@@ -77,7 +77,7 @@ module Api
 
         def profile_params
           params.permit(
-            :name, :tagline, :bio,
+            :name, :tagline, :bio, :email,
             :avatar_url, :phone,
             :github_url, :linkedin_url, :twitter_url, :website_url,
             :location_country, :location_city, :job_position,
