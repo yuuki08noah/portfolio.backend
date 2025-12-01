@@ -116,6 +116,8 @@ Rails.application.routes.draw do
           delete :like, action: :unlike
         end
       end
+      
+      resources :uploads, only: [:create]
 
       # Reading routes (backward compatibility)
       namespace :reading do
