@@ -15,12 +15,20 @@ test:
 production:
   primary:
     <<: *default
+    prepared_statements: false
+    statement_limit: 0
   cache:
     <<: *default
+    prepared_statements: false
+    statement_limit: 0
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
+    prepared_statements: false
+    statement_limit: 0
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
+    prepared_statements: false
+    statement_limit: 0
     migrations_paths: db/cable_migrate

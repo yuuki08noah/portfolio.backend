@@ -64,3 +64,4 @@ Thumbs.db
 
 # Kamal secrets
 .kamal/secrets
+.serena/
