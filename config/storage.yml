@@ -15,9 +15,6 @@ amazon:
   bucket: <%= ENV['AWS_S3_BUCKET'] %>
   public: true
   # Newer S3 buckets often have ACLs disabled; avoid sending any ACL headers.
-  upload:
-    acl: nil
-
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3
