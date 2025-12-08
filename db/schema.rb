@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_072118) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_08_075020) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -189,6 +189,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_072118) do
 
   create_table "public.projects", force: :cascade do |t|
     t.string "blog_folder"
+    t.string "cover_image"
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
     t.string "demo_url"

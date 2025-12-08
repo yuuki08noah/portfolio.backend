@@ -75,7 +75,7 @@ module Api
         end
 
         def project_params
-          params.permit(:title, :description, :demo_url, :repo_url, :start_date, :end_date, :is_ongoing,
+          params.permit(:title, :description, :demo_url, :repo_url, :cover_image, :start_date, :end_date, :is_ongoing,
                        itinerary: [], souvenirs: [], stack: [])
         end
 
@@ -85,6 +85,7 @@ module Api
             slug: project.slug,
             title: project.title,
             description: project.description,
+            coverImage: project.cover_image,
             itinerary: project.itinerary,
             souvenirs: project.souvenirs,
             stack: project.stack,
