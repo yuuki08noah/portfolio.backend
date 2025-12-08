@@ -24,6 +24,7 @@ module Api
           book = current_user.books.new(book_params)
           if book.save
             save_translations(book)
+            book.save # Persist translations
             render json: { message: "Book added", book: book_response(book) }, status: :created
           else
             render json: { errors: book.errors.full_messages }, status: :unprocessable_entity
@@ -33,6 +34,7 @@ module Api
         def update
           if @book.update(book_params)
             save_translations(@book)
+            @book.save # Persist translations
             render json: { message: "Book updated", book: book_response(@book) }, status: :ok
           else
             render json: { errors: @book.errors.full_messages }, status: :unprocessable_entity

@@ -40,7 +40,14 @@ module Api
         private
 
         def milestone_params
-          params.permit(:milestone_type, :title, :organization, :period, :location, details: [])
+          params.permit(
+            :milestone_type, :title, :organization, :period, :location,
+            details: [],
+            translations: {
+              ko: [:title, :organization, :details],
+              ja: [:title, :organization, :details]
+            }
+          )
         end
 
         def milestone_response(milestone)

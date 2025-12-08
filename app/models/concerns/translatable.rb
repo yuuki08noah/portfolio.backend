@@ -2,7 +2,7 @@ module Translatable
   extend ActiveSupport::Concern
 
   included do
-    has_many :translations, as: :translatable, dependent: :destroy
+    has_many :translations, as: :translatable, dependent: :destroy, autosave: true
   end
 
   class_methods do
@@ -15,7 +15,7 @@ module Translatable
         define_method("#{field}_translated") do |locale = 'en'|
           return send(field) if locale == 'en'
           
-          translation = translations.find_by(locale: locale, field_name: field.to_s)
+          translation = translations.find { |t| t.locale == locale && t.field_name == field.to_s }
           translation&.value.presence || send(field)
         end
       end
@@ -30,7 +30,7 @@ module Translatable
   def translations_for(locale)
     return {} if locale == 'en'
     
-    translations.where(locale: locale).each_with_object({}) do |t, hash|
+    translations.select { |t| t.locale == locale }.each_with_object({}) do |t, hash|
       hash[t.field_name] = t.value
     end
   end
@@ -39,12 +39,13 @@ module Translatable
   def set_translation(field, locale, value)
     return if locale == 'en'
     
-    translation = translations.find_or_initialize_by(
-      locale: locale,
-      field_name: field.to_s
-    )
-    translation.value = value
-    translation.save!
+    translation = translations.find { |t| t.locale == locale && t.field_name == field.to_s }
+    
+    if translation
+      translation.value = value
+    else
+      translations.build(locale: locale, field_name: field.to_s, value: value)
+    end
   end
 
   # 여러 필드의 번역을 한번에 설정
@@ -53,6 +54,25 @@ module Translatable
     
     translations_hash.each do |field, value|
       set_translation(field, locale, value) if value.present?
+    end
+  end
+
+  # Nested attributes support for translations
+  # Expected format:
+  # {
+  #   "ko" => { "title" => "제목", "description" => "설명" },
+  #   "ja" => { "title" => "タイトル", ... }
+  # }
+  def translations=(translations_params)
+    translations_params.each do |locale, fields|
+      next if locale == 'en'
+      
+      fields.each do |field, value|
+        # Only set if the field is translatable
+        next unless self.class.get_translatable_fields.include?(field.to_sym)
+        
+        set_translation(field, locale, value)
+      end
     end
   end
 

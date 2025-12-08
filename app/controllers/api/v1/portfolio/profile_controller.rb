@@ -38,8 +38,6 @@ module Api
 
           ActiveRecord::Base.transaction do
             user.update!(profile_params)
-            save_translations(user)
-            save_award_translations(user)
             render json: { message: "Profile updated successfully", profile: profile_response(user) }, status: :ok
           end
         rescue ActiveRecord::RecordInvalid => e
@@ -47,39 +45,6 @@ module Api
         end
 
         private
-
-        def save_translations(user)
-          return unless params[:translations].present?
-
-          %w[ko ja].each do |locale|
-            if params[:translations][locale].present?
-              user.set_translations(locale, params[:translations][locale].permit(
-                :name, :bio, :tagline, :job_position, :location_city, :location_country
-              ).to_h)
-            end
-          end
-        end
-
-        def save_award_translations(user)
-          return unless params[:awards_attributes].present?
-
-          params[:awards_attributes].each do |award_params|
-            next unless award_params[:id].present?
-
-            award = user.awards.find_by(id: award_params[:id])
-            next unless award
-
-            if award_params[:translations].present?
-              %w[ko ja].each do |locale|
-                if award_params[:translations][locale].present?
-                  award.set_translations(locale, award_params[:translations][locale].permit(
-                    :title, :organization, :description
-                  ).to_h)
-                end
-              end
-            end
-          end
-        end
 
         def profile_params
           params.permit(
@@ -91,7 +56,17 @@ module Api
             values: [ :title, :description ],
             external_links: [ :name, :url, :icon ],
             certifications: [ :name, :issuer, :date, :url ],
-            awards_attributes: [ :id, :title, :organization, :date, :badge_image, :description, :_destroy ]
+            translations: { 
+              ko: [:name, :bio, :tagline, :job_position, :location_city, :location_country],
+              ja: [:name, :bio, :tagline, :job_position, :location_city, :location_country]
+            },
+            awards_attributes: [ 
+              :id, :title, :organization, :date, :badge_image, :description, :_destroy,
+              translations: {
+                ko: [:title, :organization, :description],
+                ja: [:title, :organization, :description]
+              }
+            ]
           )
         end
 

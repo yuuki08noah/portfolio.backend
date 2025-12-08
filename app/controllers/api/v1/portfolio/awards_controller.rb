@@ -51,7 +51,13 @@ module Api
         private
 
         def award_params
-          params.permit(:title, :organization, :date, :description, :badge_image)
+          params.permit(
+            :title, :organization, :date, :description, :badge_image,
+            translations: {
+              ko: [:title, :organization, :description],
+              ja: [:title, :organization, :description]
+            }
+          )
         end
 
         def award_response(award)
