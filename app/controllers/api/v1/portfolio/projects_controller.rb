@@ -19,9 +19,13 @@ module Api
 
         # POST /api/v1/portfolio/projects
         def create
-          project = current_user.projects.new(project_params)
+          project = current_user.projects.new(project_params.except(:translations))
           
           if project.save
+            if params[:translations].present?
+              project.translations = params[:translations].permit!.to_h
+            end
+            
             render json: { 
               message: 'Project created successfully',
               project: project_response(project)
@@ -39,7 +43,11 @@ module Api
 
         # PATCH /api/v1/portfolio/projects/:slug
         def update
-          if @project.update(project_params)
+          if @project.update(project_params.except(:translations))
+            if params[:translations].present?
+              @project.translations = params[:translations].permit!.to_h
+            end
+            
             render json: { 
               message: 'Project updated successfully',
               project: project_response(@project)
@@ -75,11 +83,14 @@ module Api
         end
 
         def project_params
-          params.permit(:title, :description, :demo_url, :repo_url, :cover_image, :start_date, :end_date, :is_ongoing,
+          params.permit(:title, :description, :demo_url, :repo_url, :cover_image, :start_date, :end_date, :is_ongoing, :featured,
                        itinerary: [], souvenirs: [], stack: [])
         end
 
         def project_response(project)
+          ko_translations = project.translations_for('ko')
+          ja_translations = project.translations_for('ja')
+          
           {
             id: project.id,
             slug: project.slug,
@@ -96,8 +107,13 @@ module Api
             start_date: project.start_date,
             end_date: project.end_date,
             is_ongoing: project.is_ongoing,
+            featured: project.featured,
             created_at: project.created_at,
-            updated_at: project.updated_at
+            updated_at: project.updated_at,
+            translations: {
+              ko: ko_translations,
+              ja: ja_translations
+            }
           }
         end
       end

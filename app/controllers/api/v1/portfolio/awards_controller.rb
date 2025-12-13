@@ -27,8 +27,12 @@ module Api
         end
 
         def create
-          award = current_user.awards.new(award_params)
+          award = current_user.awards.build(award_params.except(:translations))
+          
           if award.save
+            if params[:translations].present?
+              award.translations = params[:translations].permit!.to_h
+            end
             render json: { message: 'Award created successfully', award: award_response(award) }, status: :created
           else
             render json: { errors: award.errors.full_messages }, status: :unprocessable_entity
@@ -36,7 +40,10 @@ module Api
         end
 
         def update
-          if @award.update(award_params)
+          if @award.update(award_params.except(:translations))
+            if params[:translations].present?
+              @award.translations = params[:translations].permit!.to_h
+            end
             render json: { message: 'Award updated successfully', award: award_response(@award) }, status: :ok
           else
             render json: { errors: @award.errors.full_messages }, status: :unprocessable_entity
@@ -52,24 +59,31 @@ module Api
 
         def award_params
           params.permit(
-            :title, :organization, :date, :description, :badge_image,
-            translations: {
-              ko: [:title, :organization, :description],
-              ja: [:title, :organization, :description]
-            }
+            :title, :organization, :date, :description, :badge_image
           )
         end
 
         def award_response(award)
-          translations = award.translations_for(current_locale)
+          ko_translations = award.translations_for('ko')
+          ja_translations = award.translations_for('ja')
 
+          # Determine which fields to prioritize based on the request content or default to base fields
+          # For admin response, we want specific structure usually, but here we can return full details
+          
           {
             id: award.id,
-            title: translations['title'].presence || award.title,
-            organization: translations['organization'].presence || award.organization,
+            name: award.title,
+            title: award.title, # Backward compatibility? Payload uses 'name' and 'issuer' but model uses 'title' and 'organization'
+            issuer: award.organization,
+            organization: award.organization,
             date: award.date,
-            description: translations['description'].presence || award.description,
-            badge_image: award.badge_image
+            url: award.badge_image,
+            badge_image: award.badge_image,
+            description: award.description,
+            translations: {
+              ko: ko_translations,
+              ja: ja_translations
+            }
           }
         end
 

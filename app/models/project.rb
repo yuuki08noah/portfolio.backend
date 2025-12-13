@@ -20,6 +20,9 @@
 #
 
 class Project < ApplicationRecord
+  include Translatable
+  translatable_fields :title, :description
+  
   belongs_to :user, optional: true
   has_many :blog_posts, class_name: 'ProjectBlogPost', dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy

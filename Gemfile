@@ -43,6 +43,7 @@ gem "jwt"
 
 # AWS SDK for S3 ActiveStorage
 gem "aws-sdk-s3", require: false
+gem "google-cloud-storage", require: false
 
 # Markdown parser
 gem "redcarpet"

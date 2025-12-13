@@ -87,12 +87,8 @@ module Api
           location_country = translations_for_locale['location_country'].presence || user.location_country
           location_city = translations_for_locale['location_city'].presence || user.location_city
 
-          # ActiveStorage avatar URL or fallback to avatar_url column
-          avatar_url = if user.avatar.attached?
-            user.avatar.url
-          else
-            user.avatar_url
-          end
+          # Prefer avatar_url column (new uploads), fallback to ActiveStorage (legacy)
+          avatar_url = user.avatar_url.presence || (user.avatar.attached? ? user.avatar.url : nil)
 
           {
             id: user.id,
