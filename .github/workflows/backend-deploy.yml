@@ -51,3 +51,8 @@ jobs:
             RAILS_ENV=production
             RAILS_LOG_TO_STDOUT=true
             RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }}
+            DATABASE_URL=${{ secrets.SUPABASE_DATABASE_URL }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GCP_PROJECT=portfolio-yuuki08noah
+            GCS_BUCKET=noah-portfolio-v2-gcs
+            FRONTEND_URL=https://yuuki08noah.com
