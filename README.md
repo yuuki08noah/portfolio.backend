@@ -1,11 +1,14 @@
 # Portfolio (Backend)
 
-> **배포 URL**: <https://portfolio-yuuki08noah-447543468752.asia-northeast3.run.app> (예시)
+> **배포 URL**: <https://api.portfolio.yuuki.dev> (예시)
 > **테스트 계정**: ID: `admin@example.com` / PW: (App log 확인 필요)
 
 ## 📌 프로젝트 소개
 
-포트폴리오 및 블로그 서비스를 위한 고성능 RESTful API 서버입니다. Rails API 모드로 구축되었으며, GCP 기반의 서버리스 아키텍처를 채택하여 확장성을 확보했습니다.
+**"확장성과 벤더 종속성을 고려한 고성능 API 서버"**
+
+단순히 기능을 구현하는 것을 넘어, 전체 인프라부터 백엔드 아키텍처까지 직접 설계하고 운영함으로써 풀스택 개발자로서의 역량을 증명하고자 했습니다.
+Ruby on Rails (API Mode)를 기반으로 구축되었으며, **GCP (Google Cloud Platform) Serverless** 환경 위에서 트래픽에 유연하게 대응하는 오토스케일링 아키텍처를 지향합니다.
 
 - **개발 기간**: 2024.11.20 ~ 2024.12.18
 - **개발 인원**: 1인 (개인 프로젝트)
@@ -14,38 +17,42 @@
 
 ## 🔍 개선 사항
 
-### 기존 코드의 문제점
+### 기존 코드의 문제점 및 해결 과정
 
 | 문제점 | 개선 방법 |
 |--------|----------|
-| 딥 뎁스 댓글 조회 시 N+1 문제 | Path Enumeration 패턴 적용 |
-| 하드코딩된 다국어 지원의 한계 | Polymorphic Association 기반 DB 다국어 설계 |
+| **인프라 확장의 어려움**<br>초기 AWS EC2 모놀리식 배포는 관리가 번거롭고 유휴 리소스 비용이 발생함 | **GCP Cloud Run (Serverless)**<br>트래픽이 없을 땐 0으로, 요청 시 자동으로 확장되는 오토스케일링 환경 구축 |
+| **댓글 조회 성능 저하**<br>대댓글 깊이가 깊어질수록 재귀 쿼리(Recursive CTE) 호출로 인해 DB 부하가 증가함 | **Path Enumeration 적용**<br>경로 컬럼을 활용하여 단 한 번의 `LIKE` 쿼리로 하위 트리를 고속 조회하도록 최적화 |
 
-### 개선 결과
+### 주요 개선 결과
 
-**[개선 1: Path Enumeration (계층형 댓글)]**
+**[심화 1: i18n 데이터 모델링]**
+- **구현**: `Globalize` 같은 무거운 라이브러리 대신, **Polymorphic Association**을 활용한 `Translation` 모델을 직접 설계했습니다.
+- **효과**: 새로운 모델에 다국어 지원이 필요할 때 스키마 변경 없이 관계 설정만으로 확장이 가능하며, `Accept-Language` 헤더에 따라 동적으로 언어를 로드합니다.
 
-- **개선 전**: 대댓글 깊이가 깊어질수록 재귀 쿼리 호출이 늘어나 성능 저하 발생
-- **개선 후**: 경로 컬럼(예: `1/5/12`)을 통해 `LIKE` 쿼리 한 번으로 모든 하위 댓글 고속 조회
+**[심화 2: Path Enumeration (계층형 댓글)]**
+- **기존**: 인접 리스트 방식은 N+1 문제 조회가 빈번함.
+- **개선**: 각 댓글에 `1/5/12`와 같은 경로 문자열을 저장. `WHERE path LIKE '1/5/%'` 쿼리 실행 시 인덱스를 타게 하여 조회 속도를 획기적으로 개선했습니다.
 
 ---
 
 ## ✨ 주요 기능
 
-### 1. API 서버
+### 1. RESTful API
 
-- RESTful 원칙을 준수한 리소스 설계
-- JWT 기반 Stateless 인증
+- **Auth**: JWT 기반 로그인/회원가입, 이메일 인증
+- **Portfolio**: 프로젝트, 마일스톤, 연혁 관리
+- **Blog**: 게시글, 태그, 카테고리 관리
 
-### 2. 성능 최적화
+### 2. 보안 및 인증
 
-- [선택한 심화 기술: Path Enumeration 댓글 시스템]
-- [선택한 심화 기술: Polymorphic i18n 시스템]
+- **Workload Identity Federation**: GitHub Actions 배포 시 장기 키(JSON Key) 없이 OIDC로 인증하여 보안 강화
+- **Rate Limiting**: 과도한 요청 방지 (Rack Attack 등 고려)
 
 ### 3. 인프라
 
-- Workload Identity Federation을 통한 Keyless 배포
-- Cloud Storage(GCS) 연동을 통한 미디어 서빙
+- **Storage**: Google Cloud Storage(GCS)를 이용한 미디어 자산 관리
+- **CI/CD**: GitHub Actions를 통한 자동화된 테스트 및 배포 파이프라인
 
 ---
 
@@ -53,16 +60,15 @@
 
 ### Backend
 
-- Ruby 3.x
-- Rails 8.1.1
-- PostgreSQL
-- JWT
+- **Framework**: Ruby on Rails 8.1.1 (API Mode)
+- **Language**: Ruby 3.x
+- **Database**: PostgreSQL 14+
+- **Auth**: JWT (JSON Web Token)
 
 ### Deployment
 
-- GCP Cloud Run
-- Google Cloud Storage (GCS)
-- GitHub Actions (CI/CD)
+- **Cloud**: GCP Cloud Run, Cloud SQL, GCS
+- **IaC**: Terraform (Infrastructure as Code)
 
 ---
 
@@ -71,41 +77,39 @@
 ```
 backend/
 ├── app/
-│   ├── controllers/
-│   │   └── api/v1/     # 버전 관리된 API 컨트롤러
-│   ├── models/         # 도메인 모델 (Comment, Project 등)
-│   └── services/       # 비즈니스 로직 처리
-├── config/
-│   └── routes.rb       # API 라우팅 정의
-└── db/                 # 스키마 및 마이그레이션
+│   ├── controllers/    # API V1 네임스페이스 컨트롤러
+│   ├── models/         # 도메인 모델 & Concerns (Translatable 등)
+│   ├── views/          # Jbuilder 템플릿 (JSON 응답 구조)
+│   └── services/       # 비즈니스 로직 (복잡한 연산 처리)
+├── config/             # Routes 및 초기 설정
+└── db/                 # 마이그레이션 파일
 ```
 
 ---
 
 ## 🔗 API 명세
 
-### 인증
+### 1. Authentication (인증)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| POST | `/api/v1/auth/login` | 로그인 (Access Token 발급) |
 | POST | `/api/v1/auth/register` | 회원가입 |
-| POST | `/api/v1/auth/login` | 로그인 |
 
-### 포트폴리오
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/portfolio/projects` | 프로젝트 목록 조회 |
-| GET | `/api/v1/portfolio/projects/:slug` | 프로젝트 상세 조회 |
-| POST | `/api/v1/portfolio/projects` | [Admin] 프로젝트 생성 |
-
-### 게시글 & 댓글
+### 2. Portfolio & Blog
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/blog/posts` | 게시글 목록 조회 |
-| GET | `/api/v1/comments` | 댓글 목록 조회 (Path Enumeration) |
-| POST | `/api/v1/comments` | 댓글 작성 |
+| GET | `/api/v1/projects` | 프로젝트 목록 조회 |
+| GET | `/api/v1/projects/:slug` | 프로젝트 상세 조회 |
+| GET | `/api/v1/posts` | 블로그 게시글 목록 |
+
+### 3. Reading & Travel
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/books` | 독서 기록 조회 |
+| GET | `/api/v1/travel/stats` | 여행 지도 데이터 (GeoJSON) |
 
 ---
 
@@ -118,15 +122,25 @@ git clone https://github.com/yuuki08noah/portfolio.backend.git
 cd portfolio.backend
 ```
 
-### 2. 백엔드 실행
+### 2. 의존성 설치
 
 ```bash
 bundle install
+```
 
-# .env 설정 (DB 접속 정보 등)
-# DATABASE_URL=postgres://user:pass@localhost:5432/portfolio_dev
+### 3. 데이터베이스 설정
 
-rails db:create db:migrate db:seed
+`.env` 파일 설정 후:
+
+```bash
+rails db:create
+rails db:migrate
+rails db:seed
+```
+
+### 4. 서버 실행
+
+```bash
 rails s -p 3000
 ```
 
@@ -141,4 +155,4 @@ rails s -p 3000
 ## 📚 참고 자료
 
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)
-- [Google Cloud Run Documentation](https://cloud.google.com/run/docs)
+- [Google Cloud Run Docs](https://cloud.google.com/run/docs)
