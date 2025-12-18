@@ -17,32 +17,79 @@
 
 ---
 
-## 💡 적용 기술 심화 설명: Workload Identity Federation & GCP Integration
+## 💡 적용 기술 심화 설명: i18n & Path Enumeration
 
-보안 강화를 위해 장기(Long-lived) 서비스 키(JSON Key)를 사용하는 대신 **Workload Identity Federation**을 도입했습니다.
+### 1. 글로벌 서비스 대응을 위한 i18n
 
-### 구현 근거
+DB 기반의 다국어 번역 시스템을 구축하여 클라이언트 요청 언어(`Accept-Language`)에 따라 동적으로 콘텐츠를 제공합니다.
 
-CI/CD 파이프라인(GitHub Actions)에서 GCP 리소스에 접근하기 위해 서비스 계정 키를 저장소 Secrets에 저장하는 것은 보안 리스크가 큽니다. 키 유출 시 치명적인 사고로 이어질 수 있기 때문입니다.
+- **구현 방식**: `Globalize` 젬을 활용하지 않고, 별도의 `Translation` 모델(Polymorphic Association)을 설계하여 유연성을 확보했습니다.
+- **이점**: 새로운 언어 추가 시 스키마 변경 없이 데이터 레벨에서 즉시 확장이 가능합니다.
 
-### 기술적 이점
+### 2. 고성능 계층형 댓글 시스템 (Path Enumeration)
 
-- **Keyless Security**: 서비스 계정 키를 생성하거나 관리할 필요 없이, GitHub의 OIDC 토큰을 사용하여 임시 권한을 획득합니다.
-- **최소 권한 원칙**: 배포에 필요한 권한(`roles/run.admin`, `roles/storage.admin`)만 최소한으로 부여하여 보안 사고의 반경을 최소화합니다.
-- **자동화된 인프라 관리**: Terraform과 연동하여 IAM 정책을 코드로 관리(IaC)함으로써 보안 설정의 일관성을 유지합니다.
+댓글/대댓글 구조를 효율적으로 처리하기 위해 **Path Enumeration** 패턴을 적용했습니다.
+
+- **기존 문제**: 인접 리스트(Adjacency List) 방식은 깊은 뎁스의 대댓글 조회 시 N+1 문제와 재귀 쿼리 비용이 발생합니다.
+- **해결**: 각 댓글에 전체 경로(path)를 저장(예: `1/5/12`)하여, `LIKE '1/5/%'` 쿼리 한 번으로 하위 트리를 고속 조회할 수 있게 최적화했습니다.
 
 ---
 
-## 📡 API 명세 요약
+## 📡 API 명세 상세
+
+### 1. Authentication (인증)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/v1/portfolio/projects` | 프로젝트 전체 목록 조회 |
-| `POST` | `/api/v1/portfolio/projects` | [Admin] 새 프로젝트 생성 |
-| `GET` | `/api/v1/blog/posts` | 블로그 글 목록 조회 (검색/필터링) |
-| `POST` | `/api/v1/uploads` | 이미지 업로드 (GCS URL 반환) |
-| `GET` | `/api/v1/reading/books` | 읽은 도서 목록 및 상태 조회 |
-| `GET` | `/api/v1/travel/map` | 여행 지도 데이터 (GeoJSON) |
+| `POST` | `/api/v1/auth/login` | 이메일/비밀번호로 로그인 (JWT 발급) |
+| `POST` | `/api/v1/auth/register` | 회원가입 |
+| `POST` | `/api/v1/auth/verify_email` | 이메일 인증 확인 |
+| `GET`  | `/api/v1/users/me` | 현재 로그인한 내 정보 조회 |
+
+### 2. Portfolio (포트폴리오)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/portfolio/profile` | 프로필 및 자기소개 조회 |
+| `GET`  | `/api/v1/portfolio/projects` | 프로젝트 목록 조회 (필터링 지원) |
+| `GET`  | `/api/v1/portfolio/projects/:slug` | 프로젝트 상세 조회 |
+| `POST` | `/api/v1/portfolio/projects` | [Admin] 프로젝트 생성 |
+| `PATCH`| `/api/v1/portfolio/projects/:slug` | [Admin] 프로젝트 수정 |
+| `GET`  | `/api/v1/portfolio/milestones` | 타임라인(연혁) 조회 |
+
+### 3. Blog (블로그)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/blog/posts` | 게시글 목록 조회 (검색, 태그 필터) |
+| `GET`  | `/api/v1/blog/posts/:slug` | 게시글 상세 조회 |
+| `POST` | `/api/v1/blog/posts` | [Admin] 게시글 작성 |
+| `GET`  | `/api/v1/blog/categories` | 카테고리 목록 조회 |
+| `GET`  | `/api/v1/blog/tags` | 태그 클라우드 데이터 조회 |
+
+### 4. Reading (독서)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/reading/books` | 읽은/읽고 있는 도서 목록 |
+| `POST` | `/api/v1/reading/books` | [Admin] 도서 기록 추가 |
+| `GET`  | `/api/v1/reading/stats` | 연도별 독서 통계 및 장르 분석 |
+
+### 5. Travel (여행)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/travel/diaries` | 여행 일지 목록 |
+| `GET`  | `/api/v1/travel/plans` | 여행 계획 목록 |
+| `GET`  | `/api/v1/travel/stats` | 방문 국가 지도 데이터 (GeoJSON) |
+
+### 6. Admin & Utility
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/admin/accounts` | [SuerAdmin] 계정 관리 |
+| `POST` | `/api/v1/uploads` | 이미지 업로드 (GCS) |
+| `GET`  | `/api/v1/site_settings` | 전체 사이트 설정 (SEO, 메타데이터) |
 
 ---
 
