@@ -62,6 +62,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Puma directly to respect config/puma.rb and PORT env var
+# Start server on port 8080 explicitly
 EXPOSE 8080
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "8080"]
