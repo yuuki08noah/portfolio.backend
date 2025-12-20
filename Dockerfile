@@ -62,6 +62,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server on port 3000
-EXPOSE 3000
-CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+# Start server on port 8080 (or whatever PORT env var is set to)
+EXPOSE 8080
+CMD ["./bin/rails", "server", "-b", "0.0.0.0"]
