@@ -1,8 +1,3 @@
-# Portfolio (Backend)
-
-> **배포 URL**: <https://api.portfolio.yuuki.dev> (예시)
-> **테스트 계정**: ID: `admin@example.com` / PW: (App log 확인 필요)
-
 ## 📌 프로젝트 소개
 
 **"확장성과 벤더 종속성을 고려한 고성능 API 서버"**
