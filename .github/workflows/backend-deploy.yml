@@ -56,4 +56,4 @@ jobs:
             GCP_PROJECT=portfolio-yuuki08noah
             GCS_BUCKET=noah-portfolio-v2-gcs
             FRONTEND_URL=https://yuuki08noah.com
-          flags: "--port 8080 --memory 1Gi"
+          flags: "--port 8080 --memory 1Gi --timeout 10m"
