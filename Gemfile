@@ -6,7 +6,7 @@ gem "rails", "~> 8.1.1"
 gem "sqlite3", ">= 2.1", group: :development
 
 # Use PostgreSQL for production
-gem "pg", "~> 1.5", group: :production
+gem "pg", "~> 1.6", group: :production
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
